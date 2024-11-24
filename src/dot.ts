@@ -11,12 +11,9 @@ export function generateDot(graph: CallHierarchyNode, path: string) {
     const getNode = (n: CallHierarchyNode) => {
         return {
             name: `"${n.item.uri.path}#${n.item.name}@${n.item.range.start.line}:${n.item.range.start.character}"`,
-            attr: { label: n.item.name },
-            subgraph: {
-                name: n.item.uri.path,
-                attr: { label: n.item.uri.path.replace(root, '${workspace}') },
-            },
-            next: [],
+            attr: { label: n.item.name, color: '$secondaryColor', fillcolor: '$primaryColor', style: 'filled', fontcolor: '$secondaryColor' },
+            subgraph: { name: n.item.uri.path, attr: { label: n.item.uri.path.replace(root, '${workspace}') } },
+            next: []
         } as Node
     }
     const node = getNode(graph)
@@ -77,7 +74,11 @@ class Graph {
     private _subgraphs = new Map<string, string>()
     private _nodes = new Set<Node>()
     constructor(title?: string) {
-        this._dot = 'digraph' + ` ${title ?? ''} {\n`
+        this._dot = (true ? 'digraph' : 'graph')
+            + ` ${title ?? ''} {\n`
+            + 'bgcolor="$backgroundColor"\n'
+            + 'color="$secondaryColor"\n'
+            + 'fontcolor="$secondaryColor"\n'
     }
     addAttr(attr: Attr) {
         this._dot += this.getAttr(attr, true)
@@ -90,22 +91,16 @@ class Graph {
             let s = ''
             const removeRepeat = [] as number[]
             if (n.next.length > 0) {
-                const children = n.next
-                    .map((child, index) => {
-                        for (const s of this._nodes) {
-                            if (isDeepStrictEqual(s, child))
-                                removeRepeat.push(index)
-                        }
-                        if (child.subgraph)
-                            this.insertToSubgraph(
-                                child.subgraph,
-                                child.name + ' ',
-                            )
-                        return child.name + this.getAttr(child.attr)
-                    })
-                    .join(' ')
-                s += `{${name}} -> {${children}}\n`
-            } else s += name + '\n'
+                const children = n.next.map((child, index) => {
+                    for (const s of this._nodes) {
+                        if (isDeepStrictEqual(s, child)) removeRepeat.push(index)
+                    }
+                    if (child.subgraph) this.insertToSubgraph(child.subgraph, child.name + ' ')
+                    return child.name + this.getAttr(child.attr)
+                }).join(' ')
+                s += `{${name}} -> {${children}} [color="$secondaryColor"]\n`
+            }
+            else s += name + '\n'
             this._dot += s
             this.addNode(
                 ...n.next.filter((_, index) => !removeRepeat.includes(index)),
