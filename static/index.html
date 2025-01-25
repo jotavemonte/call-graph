@@ -20,13 +20,6 @@
         </div>
     </body>
     <script>
-        // --- Styling section ---
-        const BACKGROUND = getEditorColor('--vscode-editor-background')
-        const PRIMARY = getEditorColor(
-            '--vscode-list-activeSelectionBackground',
-        )
-        const SECONDARY = getEditorColor('--vscode-editor-foreground')
-
         function updateSvgViewBox() {
             const width = window.innerWidth
             const height = window.innerHeight
@@ -37,7 +30,20 @@
                 .attr('viewBox', [0, 0, width, height].join(' '))
         }
 
+        function getEditorColor(property) {
+            return document
+                .getElementsByTagName('html')[0]
+                .style.getPropertyValue(property)
+        }
+
         ;(async function () {
+            // --- Styling section ---
+            const BACKGROUND = getEditorColor('--vscode-editor-background')
+            const PRIMARY = getEditorColor(
+                '--vscode-list-activeSelectionBackground',
+            )
+            const SECONDARY = getEditorColor('--vscode-editor-foreground')
+
             const vscode = acquireVsCodeApi()
             // Inject dot file uri: $DOT_FILE_URI
             vscode.setState('$DOT_FILE_URI')
@@ -76,7 +82,7 @@
                 vscode.postMessage({
                     command: 'download',
                     type: 'dot',
-                    data: dot,
+                    data: styledDot,
                 })
             })
         })()
