@@ -20,6 +20,13 @@
         </div>
     </body>
     <script>
+        // --- Styling section ---
+        const BACKGROUND = getEditorColor('--vscode-editor-background')
+        const PRIMARY = getEditorColor(
+            '--vscode-list-activeSelectionBackground',
+        )
+        const SECONDARY = getEditorColor('--vscode-editor-foreground')
+
         function updateSvgViewBox() {
             const width = window.innerWidth
             const height = window.innerHeight
@@ -35,10 +42,14 @@
             // Inject dot file uri: $DOT_FILE_URI
             vscode.setState('$DOT_FILE_URI')
             const dot = await (await fetch('$DOT_FILE_URI')).text()
+            const styledDot = dot
+                .replaceAll('$callGraphBackgroundColor', BACKGROUND)
+                .replaceAll('$callGraphPrimaryColor', PRIMARY)
+                .replaceAll('$callGraphSecondaryColor', SECONDARY)
             const gv = d3
                 .select('#app')
                 .graphviz()
-                .renderDot(dot, () => {
+                .renderDot(styledDot, () => {
                     d3.select(window).on('resize.updatesvg', updateSvgViewBox)
                     updateSvgViewBox()
                 })
